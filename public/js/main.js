@@ -1,4 +1,4 @@
-const URL = "http://localhost:3000";
+const URL = process.env.NODE_ENV === "production" ? "https://one-percent-club-verf.onrender.com/" : "http://localhost:3000";
 const socket = io(URL, { autoConnect: false });
 
 const app = {
