@@ -147,6 +147,18 @@
                             <br />
 
                             <div class="row" v-show="adminGameState.GameStarted">
+                                <div class="col-sm-4">
+                                    <button class="btn btn-primary" @click="StartGame()">Start Game</button>
+                                </div>
+
+                                <div class="col-sm-4">
+                                    <button class="btn btn-primary" @click="PostIntro()">Post Intro</button>
+                                </div>
+
+                                <div class="col-sm-4">
+                                    <button class="btn btn-primary" @click="PlayerIntro()">Player Intro</button>
+                                </div>
+
                                 <div class="col-sm-6">
                                     <button class="btn btn-primary" @click="NextQuestion()">Next Question</button>
                                 </div>
@@ -154,6 +166,8 @@
                                 <div class="col-sm-6">
                                     <button class="btn btn-primary" @click="AdvanceQuestion()">Advance Question</button>
                                 </div>
+
+                               
                             </div>
 
                             <div class="row" v-show="adminGameState.QuestionState == 1">

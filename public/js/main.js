@@ -1,5 +1,5 @@
-const URL = "https://one-percent-club-verf.onrender.com/";
-//const URL = "http://localhost:3000";
+//const URL = "https://one-percent-club-verf.onrender.com/";
+const URL = "http://localhost:3000";
 
 const socket = io(URL, { autoConnect: false });
 
@@ -105,6 +105,12 @@ const app = {
       },
       StartGame() {
         socket.emit("start_game");
+      },
+      PostIntro() {
+        socket.emit("admin_postintro");
+      },
+      PlayerIntro() {
+        socket.emit("admin_playerintro");
       },
       NextQuestion() {
         socket.emit("admin_nextquestion");

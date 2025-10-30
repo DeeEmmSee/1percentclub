@@ -101,6 +101,16 @@ io.on('connection', (socket) => {
       io.to(GameSocketID).emit("admin_startgame");
     });
 
+    // Post intro (admin - server - game - server - players)
+    socket.on('admin_postintro', () => {
+      io.to(GameSocketID).emit("admin_postintro");
+    });
+
+     // Player intro (admin - server - game - server - players)
+    socket.on('admin_playerintro', () => {
+      io.to(GameSocketID).emit("admin_playerintro");
+    });
+
     // Next Question (admin - server - game - server - players)
     socket.on('admin_nextquestion', () => {
       io.to(GameSocketID).emit("admin_nextquestion");
