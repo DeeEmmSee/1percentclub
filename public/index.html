@@ -104,7 +104,7 @@
                         <p>You have WON! Final score: {{ player.Score }}</p>
                     </div>
 
-                    <div v-show="gameState.CanLeave && player.PGState == 0">
+                    <div v-show="gameState.CanLeave && player.PGState == 0 && !player.HasUsedPass">
                         <p>Do you want to walk away?</p>
                         <button @click="WalkAway()" class="btn btn-primary">WALK AWAY</button>
                     </div>
