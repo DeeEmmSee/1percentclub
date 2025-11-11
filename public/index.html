@@ -62,7 +62,7 @@
 
                                 <div v-show="gameState.AnswerOptions.length > 0" class="form-group">
                                     <div v-for="(option, index) in gameState.AnswerOptions" @click="selectedOption(option, index)" :class="['item', { active: activeIndex === index }]">
-                                        {{ gameState.QuestionType == 2 || gameState.QuestionType == 9 ? option.OptionName : (option.OptionName + ': ' + option.OptionValue)  }}
+                                        {{ gameState.QuestionType == 2 || gameState.QuestionType == 4 || gameState.QuestionType == 9 ? option.OptionName : (option.OptionName + ': ' + option.OptionValue)  }}
                                     </div>
                                 </div>
 
@@ -125,7 +125,7 @@
                                 <p>
                                     <span style="font-size: 22px;">{{ player.Name }}</span>&nbsp;
                                     <span :class="{ 'dot in': player.PGState == 0, 'dot out': player.PGState == 1, 'dot walked': player.PGState == 2 }"></span>&nbsp;
-                                    <span :style="{ 'text-decoration': player.HasUsedPass ? 'line-through' : 'none' }">P</span>&nbsp;
+                                    <span>{{ player.HasUsedPass ? '' : 'P' }}</span>&nbsp;
                                     <span v-show="player.LeftGameOn && player.LeftGameOn != ''">{{ player.LeftGameOn }}</span>
                                 </p>
                             </div>
