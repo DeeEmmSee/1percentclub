@@ -1,5 +1,7 @@
 //const URL = "https://one-percent-club-verf.onrender.com/";
-const URL = "http://localhost:3000";
+//const URL = "http://localhost:3000";
+
+const URL = window.location.href.indexOf("localhost") > -1 ? "http://localhost:3000" : "https://one-percent-club-verf.onrender.com/";
 
 const socket = io(URL, { autoConnect: false });
 
