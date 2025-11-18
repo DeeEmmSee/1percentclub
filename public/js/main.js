@@ -44,6 +44,8 @@ const app = {
 
         socket.on("error", (err) => {
           console.log("ERROR: " + err);
+          self.username = '';
+          self.usernameSet = false;
         });
 
         socket.on("update_state", (data) => {
@@ -129,8 +131,10 @@ const app = {
       },
       UsePass() {
         // send 
-        this.hasAnswered = true;
-        socket.emit("use_pass", { "name": this.username, "qKey": this.gameState.QuestionID });
+        if (confirm("Are you sure you want to use your pass?")){
+          this.hasAnswered = true;
+          socket.emit("use_pass", { "name": this.username, "qKey": this.gameState.QuestionID });
+        }
       },
       selectedOption(option, index) {
         this.answer = option.OptionName;

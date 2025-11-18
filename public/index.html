@@ -74,8 +74,10 @@
                                     <button @click="SubmitAnswer()" class="btn btn-primary">SUBMIT</button>
                                 </div>
 
+                                <br />
+                                
                                 <div class="form-group" v-show="!player.HasUsedPass && gameState.GameState >= 4 && gameState.GameState < 14">
-                                    <button @click="UsePass()" class="btn btn-primary">USE PASS</button>
+                                    <button @click="UsePass()" class="btn btn-warning">USE PASS</button>
                                 </div>
                             </div>
                             <div v-show="hasAnswered">
