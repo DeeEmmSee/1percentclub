@@ -34,6 +34,8 @@ const app = {
         socket.on("connect", () => {
           console.log("Connected");
           self.connectedToServer = true;
+
+          self.usernameSet = self.username != '';
         });
         
         socket.on("username_set", (isAdmin) => {
@@ -71,7 +73,6 @@ const app = {
 
         socket.on("disconnect", () => {
           console.log("DISCONNECTED");
-          self.username = '';
           self.usernameSet = false;
         });
 
