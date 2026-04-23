@@ -6,11 +6,11 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>The 1% Club</title>
 
-        <script src="https://cdn.socket.io/4.8.1/socket.io.min.js" integrity="sha384-mkQ3/7FUtcGyoppY6bz/PORYoGqOl7/aSUMn2ymDOJcapfS6PHqxhRTMh1RR0Q6+" crossorigin="anonymous"></script>
-        <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+        <script src="./js/socket.io.min.js" integrity="sha384-mkQ3/7FUtcGyoppY6bz/PORYoGqOl7/aSUMn2ymDOJcapfS6PHqxhRTMh1RR0Q6+" crossorigin="anonymous"></script>
+        <script src="./js/vue.global.js"></script>
 
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-4Q6Gf2aSP4eDXB8Miphtr37CMZZQ5oXLH2yaXMJ2w8e2ZtHTl7GptT4jmndRuHDT" crossorigin="anonymous">
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/js/bootstrap.bundle.min.js" integrity="sha384-j1CDi7MgGQ12Z7Qab0qlWQ/Qqz24Gc6BM0thvEMVjHnfYGF0rmFCozFSxQBxwHKO" crossorigin="anonymous"></script>
+        <link href="./css/bootstrap.min.css" rel="stylesheet" integrity="sha384-4Q6Gf2aSP4eDXB8Miphtr37CMZZQ5oXLH2yaXMJ2w8e2ZtHTl7GptT4jmndRuHDT" crossorigin="anonymous">
+        <script src="./js/bootstrap.bundle.min.js" integrity="sha384-j1CDi7MgGQ12Z7Qab0qlWQ/Qqz24Gc6BM0thvEMVjHnfYGF0rmFCozFSxQBxwHKO" crossorigin="anonymous"></script>
 
         <link rel="stylesheet" href="./css/main.css"></link>
 
@@ -31,6 +31,11 @@
                 <div class="form-group">
                     <label>Username</label><br />
                     <input type="text" v-model="username" v-on:keyup.enter="ConnectToServer()" />
+                </div>
+
+                <div class="form-group">
+                    <label>Display Picture</label><br />
+                    <input type="file" v-on:change="FileSelected" />
                 </div>
 
                 <div class="spacer20"></div>
@@ -178,12 +183,14 @@
                                     <tr>
                                         <th>Name</th>
                                         <th>Answer</th>
-                                        <th>Button</th>
+                                        <th></th>
+                                        <th></th>
                                     </tr>
                                     <tr v-for="playerAnswer in playerAnswers">
                                         <td>{{ playerAnswer.name }}</td>
                                         <td>{{ playerAnswer.answer }}</td>
                                         <td><button class="btn btn-success" @click="SetAnswerAsCorrect(playerAnswer)">Mark as Correct</button></td>
+                                        <td><button class="btn btn-danger" @click="SetAnswerAsIncorrect(playerAnswer)">Mark as Incorrect</button></td>
                                     </tr>
                                 </table>
                             </div>

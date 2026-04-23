@@ -4,27 +4,43 @@ const { join } = require('node:path');
 const { Server } = require('socket.io');
 const { instrument } = require("@socket.io/admin-ui");
 const compression = require("compression");
+const fs = require('node:fs');
+
+const url = "http://game.onepercent.club"; //'http://localhost:80'; //"http://game.onepercent.club";
+const filePath = 'D:/Programming/Web_Dev/1PercentClub/server/public/images';
 
 const app = express();
 const server = createServer(app);
 const io = new Server(server, {
   cors: {
     origin: "*"//"http://localhost:5173"
-  }
+  },
+  maxHttpBufferSize: 1e7
 });
 
 const Players = { };
 let GameSocketID = '';
+let gameStarted = false;
 
 io.on('connection', (socket) => {
     //console.log('User connected');
 
     // Set Username (player - server - game)
-    socket.on('set_username', (name) => {
-      if (!Players.hasOwnProperty(name)) {
-        
-        socket.name = name;
-        let isAdmin = name == "Ryo";
+    socket.on('set_username', (data) => {
+      /// If game is not running then allow in
+      if (gameStarted) {
+        socket.emit('error', "Game has already started");
+        return;
+      }
+
+      if (Object.keys(Players).length >= 100) {
+        socket.emit('error', "Game has too many players");
+        return;
+      }
+
+      if (!Players.hasOwnProperty(data.name)) {
+        socket.name = data.name;
+        let isAdmin = data.name == "Ryo";
         socket.emit("username_set", isAdmin);
 
         if (isAdmin) {
@@ -35,10 +51,35 @@ io.on('connection', (socket) => {
         }
         else {
           socket.join("players");
-          Players[name] = socket.id;
+          Players[data.name] = socket.id;
           console.log("User added");
           console.log(Players);
-          io.to(GameSocketID).emit("admin_playerjoined", { "name": socket.name, "id": socket.id }); 
+
+          // Save image with socket id as file name
+
+          let filename = ''
+          if (data.file != null) {
+            if (data.extension == ".png" || data.extension == ".jpg") {
+              filename = socket.id + data.extension;
+
+              console.log(filename);
+
+              fs.writeFile('./public/images/' + filename, data.file, (err) => {
+                if (err){
+                  console.log("ERROR WRITING FILE");
+                  console.log(err);
+                }
+                else{
+                  console.log("file written");
+                }
+              });
+            }
+            else {
+              console.log("Invalid file extension: " + data.extension);
+            }
+          }
+          
+          io.to(GameSocketID).emit("admin_playerjoined", { "name": socket.name, "id": socket.id, "imageUrl": url + "/images/" + filename }); 
         }
       }
       else {
@@ -97,6 +138,7 @@ io.on('connection', (socket) => {
 
     // Start game (admin - server - game - server - players)
     socket.on('start_game', () => {
+      gameStarted = true;
       socket.to("players").emit("start_game");
       io.to(GameSocketID).emit("admin_startgame");
     });
@@ -160,6 +202,6 @@ instrument(io, {
   mode: 'development'
 });
 
-server.listen(3000, () => {
-  console.log('server running at http://localhost:3000');
+server.listen(80, () => {
+  console.log('server running at http://localhost:80');
 });

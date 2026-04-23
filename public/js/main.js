@@ -1,7 +1,7 @@
 //const URL = "https://one-percent-club-verf.onrender.com/";
 //const URL = "http://localhost:3000";
 
-const URL = window.location.href.indexOf("localhost") > -1 ? "http://localhost:3000" : "https://one-percent-club-verf.onrender.com/";
+const URL = window.location.href.indexOf("localhost") > -1 ? "http://localhost:80" : "http://game.onepercent.club"; //"https://one-percent-club-verf.onrender.com/";
 
 const socket = io(URL, { autoConnect: false });
 
@@ -24,7 +24,8 @@ const app = {
         hasAnswered: false,
         playerList: [],
         activeIndex: -1,
-        playerAnswers: []
+        playerAnswers: [],
+        displayPicture: null
       }
     },
     methods: {
@@ -102,10 +103,19 @@ const app = {
         });
         // ADMIN
       },
+      FileSelected(evt) {
+        this.displayPicture = evt.target.files[0];
+      },
       ConnectToServer() {
         if (this.username != '') {
           socket.connect();
-          socket.emit("set_username", this.username);
+
+          let fileExtension = '';
+          if (this.displayPicture != null){
+            let tmp = this.displayPicture.name.split('.');
+            fileExtension = '.' + tmp[tmp.length - 1];
+          }
+          socket.emit("set_username", { "name": this.username, "file": this.displayPicture, "extension": fileExtension });
         }
       },
       StartGame() {
@@ -154,6 +164,9 @@ const app = {
       SetAnswerAsCorrect(playerAnswer) {
         this.playerAnswers.splice(this.playerAnswers.indexOf(playerAnswer), 1);
         socket.emit("admin_mark_as_correct", playerAnswer);
+      },
+      SetAnswerAsIncorrect(playerAnswer) {
+        this.playerAnswers.splice(this.playerAnswers.indexOf(playerAnswer), 1);
       }
     },
     mounted() {
