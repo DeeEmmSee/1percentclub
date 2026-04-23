@@ -6,7 +6,7 @@ const { instrument } = require("@socket.io/admin-ui");
 const compression = require("compression");
 const fs = require('node:fs');
 
-const url = "http://game.onepercent.club"; //'http://localhost:80'; //"http://game.onepercent.club";
+const url = 'http://localhost:80'; //"http://game.onepercent.club";
 const filePath = 'D:/Programming/Web_Dev/1PercentClub/server/public/images';
 
 const app = express();
@@ -15,7 +15,10 @@ const io = new Server(server, {
   cors: {
     origin: "*"//"http://localhost:5173"
   },
-  maxHttpBufferSize: 1e7
+  maxHttpBufferSize: 1e7,
+  connectionStateRecovery: {},
+  pingInterval: 10000, 
+  pingTimeout: 60000,
 });
 
 const Players = { };
@@ -27,8 +30,10 @@ io.on('connection', (socket) => {
 
     // Set Username (player - server - game)
     socket.on('set_username', (data) => {
-      /// If game is not running then allow in
-      if (gameStarted) {
+      const isReturningPlayer = data.isReconnect && Players.hasOwnProperty(data.name);
+  
+      // If game is not running then allow in
+      if (gameStarted && !isReturningPlayer) {
         socket.emit('error', "Game has already started");
         return;
       }

@@ -3,7 +3,14 @@
 
 const URL = window.location.href.indexOf("localhost") > -1 ? "http://localhost:80" : "http://game.onepercent.club"; //"https://one-percent-club-verf.onrender.com/";
 
-const socket = io(URL, { autoConnect: false });
+const socket = io(URL, {
+  autoConnect: false,
+  reconnection: true,
+  reconnectionAttempts: Infinity,
+  reconnectionDelay: 1000,
+  reconnectionDelayMax: 5000,
+  timeout: 20000
+});
 
 const app = {
     data() {
@@ -36,10 +43,28 @@ const app = {
           console.log("Connected");
           self.connectedToServer = true;
 
-          self.usernameSet = self.username != '';
+          const savedName = localStorage.getItem('pgUsername');
+          if (savedName && !self.usernameSet) {
+            self.username = savedName;
+            socket.emit("set_username", {
+              name: savedName,
+              file: null,
+              extension: '',
+              isReconnect: true
+            });
+          } else {
+            self.usernameSet = self.username != '';
+          }
+        });
+
+        socket.on("disconnect", () => {
+          console.log("Disconnected");
+          self.connectedToServer = false;
         });
         
         socket.on("username_set", (isAdmin) => {
+          localStorage.setItem('pgUsername', this.username);
+
           self.usernameSet = true;
           self.isAdmin = isAdmin;
           console.log("username set");
@@ -167,6 +192,9 @@ const app = {
       },
       SetAnswerAsIncorrect(playerAnswer) {
         this.playerAnswers.splice(this.playerAnswers.indexOf(playerAnswer), 1);
+      },
+      Reconnect() {
+
       }
     },
     mounted() {

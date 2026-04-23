@@ -46,161 +46,168 @@
             </div>
 
             
+            <div v-if="connectedToServer">
+                <div class="row" v-show="usernameSet && !isAdmin">
+                    <div class="col-sm-12" v-show="!gameState.GameStarted">
+                        <h4>{{ username }}</h4>
+                        <p>Game will begin shortly</p>
+                    </div>
 
-            <div class="row" v-show="usernameSet && !isAdmin">
-                <div class="col-sm-12" v-show="!gameState.GameStarted">
-                    <h4>{{ username }}</h4>
-                    <p>Game will begin shortly</p>
-                </div>
+                    <div v-show="gameState.GameStarted">
+                        <h5 v-show="gameState.QuestionTier != 'PRE_GAME'">Current Question: {{ gameState.QuestionTier }}</h5>
+                        
+                        <div v-show="player.PGState == 0">
+                            <div v-show="!gameState.CanAnswer && gameState.QuestionState == 0">
+                                <p>Get ready for the next question...</p>
+                            </div>
 
-                <div v-show="gameState.GameStarted">
-                    <h5 v-show="gameState.QuestionTier != 'PRE_GAME'">Current Question: {{ gameState.QuestionTier }}</h5>
-                    
-                    <div v-show="player.PGState == 0">
-                        <div v-show="!gameState.CanAnswer && gameState.QuestionState == 0">
-                            <p>Get ready for the next question...</p>
-                        </div>
+                            <div v-show="gameState.CanAnswer">
+                                <div v-show="!hasAnswered">
+                                    <p>{{ gameState.QuestionText }}</p>
 
-                        <div v-show="gameState.CanAnswer">
-                            <div v-show="!hasAnswered">
-                                <p>{{ gameState.QuestionText }}</p>
+                                    <div v-show="gameState.AnswerOptions.length > 0" class="form-group">
+                                        <div v-for="(option, index) in gameState.AnswerOptions" @click="selectedOption(option, index)" :class="['item', { active: activeIndex === index }]">
+                                            {{ gameState.QuestionType == 2 || gameState.QuestionType == 4 || gameState.QuestionType == 9 ? option.OptionName : (option.OptionName + ': ' + option.OptionValue)  }}
+                                        </div>
+                                    </div>
 
-                                <div v-show="gameState.AnswerOptions.length > 0" class="form-group">
-                                    <div v-for="(option, index) in gameState.AnswerOptions" @click="selectedOption(option, index)" :class="['item', { active: activeIndex === index }]">
-                                        {{ gameState.QuestionType == 2 || gameState.QuestionType == 4 || gameState.QuestionType == 9 ? option.OptionName : (option.OptionName + ': ' + option.OptionValue)  }}
+                                    <div v-show="gameState.AnswerOptions.length == 0" class="form-group">
+                                        <input v-model="answer" class="form-control" v-on:keyup.enter="SubmitAnswer()"></input>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <button @click="SubmitAnswer()" class="btn btn-primary">SUBMIT</button>
+                                    </div>
+
+                                    <br />
+                                    
+                                    <div class="form-group" v-show="!player.HasUsedPass && gameState.GameState >= 4 && gameState.GameState < 14">
+                                        <button @click="UsePass()" class="btn btn-warning">USE PASS</button>
                                     </div>
                                 </div>
-
-                                <div v-show="gameState.AnswerOptions.length == 0" class="form-group">
-                                    <input v-model="answer" class="form-control" v-on:keyup.enter="SubmitAnswer()"></input>
-                                </div>
-
-                                <div class="form-group">
-                                    <button @click="SubmitAnswer()" class="btn btn-primary">SUBMIT</button>
-                                </div>
-
-                                <br />
-                                
-                                <div class="form-group" v-show="!player.HasUsedPass && gameState.GameState >= 4 && gameState.GameState < 14">
-                                    <button @click="UsePass()" class="btn btn-warning">USE PASS</button>
+                                <div v-show="hasAnswered">
+                                    Answer received!
                                 </div>
                             </div>
-                            <div v-show="hasAnswered">
-                                Answer received!
+                            
+                            <div v-show="gameState.QuestionState == 2">
+                                <p>Let's see if you're right...</p>
+                            </div>
+
+                            <div v-show="gameState.QuestionState == 3">
+                                You were correct!
                             </div>
                         </div>
                         
-                        <div v-show="gameState.QuestionState == 2">
-                            <p>Let's see if you're right...</p>
+                        <div v-show="player.PGState == 1">
+                            <p>You have been eliminated from the game. Final score: 0</p>
                         </div>
 
-                        <div v-show="gameState.QuestionState == 3">
-                            You were correct!
+                        <div v-show="player.PGState == 2">
+                            <p>You have walked away. Final score: {{ player.Score }}</p>
+                        </div>
+
+                        <div v-show="player.PGState == 3">
+                            <p>You have WON! Final score: {{ player.Score }}</p>
+                        </div>
+
+                        <div v-show="gameState.CanLeave && player.PGState == 0 && !player.HasUsedPass">
+                            <p>Do you want to walk away?</p>
+                            <button @click="WalkAway()" class="btn btn-primary">WALK AWAY</button>
                         </div>
                     </div>
+                </div>
+
+                <div v-show="isAdmin">
+                    <div class="row">
+                        <div class="col-sm-12" >
+                            <h3>ADMIN</h3>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-sm-6">
+                                <h4>Players</h4>
+
+                                <div class="adminplayer" v-for="player in adminGameState.Players">
+                                    <p>
+                                        <span style="font-size: 22px;">{{ player.Name }}</span>&nbsp;
+                                        <span :class="{ 'dot in': player.PGState == 0, 'dot out': player.PGState == 1, 'dot walked': player.PGState == 2 }"></span>&nbsp;
+                                        <span>{{ player.HasUsedPass ? '' : 'P' }}</span>&nbsp;
+                                        <span v-show="player.LeftGameOn && player.LeftGameOn != ''">{{ player.LeftGameOn }}</span>
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div class="col-sm-6">
+                                <h4>Game State</h4>
+                                <p>Question Tier: {{ adminGameState.QuestionTier }}</p>
+                                <p>Question State: {{ adminGameState.QuestionState }}</p>
+                                <p>Question: {{ adminGameState.QuestionText }}</p>
+                                <p>Answer: {{ adminGameState.QuestionAnswer }}</p>
+
+                                <br /><br />
+                                <div class="row" v-show="!adminGameState.GameStarted">
+                                    <div class="col-sm-12">
+                                        <button class="btn btn-primary" @click="StartGame()">Start Game</button>
+                                    </div>
+                                </div>
+
+                                <br />
+
+                                <div class="row" v-show="adminGameState.GameStarted">
+                                    <div class="col-sm-4">
+                                        <button class="btn btn-primary" @click="StartGame()">Start Game</button>
+                                    </div>
+
+                                    <div class="col-sm-4">
+                                        <button class="btn btn-primary" @click="PostIntro()">Post Intro</button>
+                                    </div>
+
+                                    <div class="col-sm-4">
+                                        <button class="btn btn-primary" @click="PlayerIntro()">Player Intro</button>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <button class="btn btn-primary" @click="NextQuestion()">Next Question</button>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <button class="btn btn-primary" @click="AdvanceQuestion()">Advance Question</button>
+                                    </div>
+
+                                
+                                </div>
+
+                                <div class="row" v-show="adminGameState.QuestionState == 1">
+                                    <table>
+                                        <tr>
+                                            <th>Name</th>
+                                            <th>Answer</th>
+                                            <th></th>
+                                            <th></th>
+                                        </tr>
+                                        <tr v-for="playerAnswer in playerAnswers">
+                                            <td>{{ playerAnswer.name }}</td>
+                                            <td>{{ playerAnswer.answer }}</td>
+                                            <td><button class="btn btn-success" @click="SetAnswerAsCorrect(playerAnswer)">Mark as Correct</button></td>
+                                            <td><button class="btn btn-danger" @click="SetAnswerAsIncorrect(playerAnswer)">Mark as Incorrect</button></td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+										<td><button class="btn btn-danger" @click="SetAnswerAsIncorrect(playerAnswer)">Mark as Incorrect</button></td>
                     
-                    <div v-show="player.PGState == 1">
-                        <p>You have been eliminated from the game. Final score: 0</p>
+
                     </div>
 
-                    <div v-show="player.PGState == 2">
-                        <p>You have walked away. Final score: {{ player.Score }}</p>
-                    </div>
-
-                     <div v-show="player.PGState == 3">
-                        <p>You have WON! Final score: {{ player.Score }}</p>
-                    </div>
-
-                    <div v-show="gameState.CanLeave && player.PGState == 0 && !player.HasUsedPass">
-                        <p>Do you want to walk away?</p>
-                        <button @click="WalkAway()" class="btn btn-primary">WALK AWAY</button>
-                    </div>
                 </div>
             </div>
+            <div v-else>
+                Attempting to reconnect to server. Click the button below if auto-reconnect isn't working:
 
-            <div v-show="isAdmin">
-                <div class="row">
-                    <div class="col-sm-12" >
-                        <h3>ADMIN</h3>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-sm-6">
-                            <h4>Players</h4>
-
-                            <div class="adminplayer" v-for="player in adminGameState.Players">
-                                <p>
-                                    <span style="font-size: 22px;">{{ player.Name }}</span>&nbsp;
-                                    <span :class="{ 'dot in': player.PGState == 0, 'dot out': player.PGState == 1, 'dot walked': player.PGState == 2 }"></span>&nbsp;
-                                    <span>{{ player.HasUsedPass ? '' : 'P' }}</span>&nbsp;
-                                    <span v-show="player.LeftGameOn && player.LeftGameOn != ''">{{ player.LeftGameOn }}</span>
-                                </p>
-                            </div>
-                        </div>
-
-                        <div class="col-sm-6">
-                            <h4>Game State</h4>
-                            <p>Question Tier: {{ adminGameState.QuestionTier }}</p>
-                            <p>Question State: {{ adminGameState.QuestionState }}</p>
-                            <p>Question: {{ adminGameState.QuestionText }}</p>
-                            <p>Answer: {{ adminGameState.QuestionAnswer }}</p>
-
-                            <br /><br />
-                            <div class="row" v-show="!adminGameState.GameStarted">
-                                <div class="col-sm-12">
-                                    <button class="btn btn-primary" @click="StartGame()">Start Game</button>
-                                </div>
-                            </div>
-
-                            <br />
-
-                            <div class="row" v-show="adminGameState.GameStarted">
-                                <div class="col-sm-4">
-                                    <button class="btn btn-primary" @click="StartGame()">Start Game</button>
-                                </div>
-
-                                <div class="col-sm-4">
-                                    <button class="btn btn-primary" @click="PostIntro()">Post Intro</button>
-                                </div>
-
-                                <div class="col-sm-4">
-                                    <button class="btn btn-primary" @click="PlayerIntro()">Player Intro</button>
-                                </div>
-
-                                <div class="col-sm-6">
-                                    <button class="btn btn-primary" @click="NextQuestion()">Next Question</button>
-                                </div>
-
-                                <div class="col-sm-6">
-                                    <button class="btn btn-primary" @click="AdvanceQuestion()">Advance Question</button>
-                                </div>
-
-                               
-                            </div>
-
-                            <div class="row" v-show="adminGameState.QuestionState == 1">
-                                <table>
-                                    <tr>
-                                        <th>Name</th>
-                                        <th>Answer</th>
-                                        <th></th>
-                                        <th></th>
-                                    </tr>
-                                    <tr v-for="playerAnswer in playerAnswers">
-                                        <td>{{ playerAnswer.name }}</td>
-                                        <td>{{ playerAnswer.answer }}</td>
-                                        <td><button class="btn btn-success" @click="SetAnswerAsCorrect(playerAnswer)">Mark as Correct</button></td>
-                                        <td><button class="btn btn-danger" @click="SetAnswerAsIncorrect(playerAnswer)">Mark as Incorrect</button></td>
-                                    </tr>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-
-                  
-
-                </div>
-
+                <button class="btn btn-primary" @click="Reconnect()">Reconnect</button>
             </div>
         </main>
        </div>
