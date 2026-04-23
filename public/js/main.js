@@ -141,7 +141,7 @@ const app = {
         this.displayPicture = evt.target.files[0];
       },
       ConnectToServer() {
-        if (this.username != '') {
+        if (this.username != '' && !this.connectedToServer) {
           socket.connect();
 
           // let fileExtension = '';

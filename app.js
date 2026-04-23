@@ -196,7 +196,7 @@ io.on('connection', (socket) => {
     });
     // /ADMIN
 
-    socket.on('disconnected', () => {
+    socket.on('disconnect', () => {
         console.log("User disconnected");
 
         if (Players.hasOwnProperty(socket.name)) {
