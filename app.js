@@ -43,7 +43,15 @@ io.on('connection', (socket) => {
         return;
       }
 
-      if (!Players.hasOwnProperty(data.name)) {
+       if (isReturningPlayer) {
+        // Update their socket ID and rejoin the room
+        Players[data.name] = socket.id;
+        socket.name = data.name;
+        socket.join("players");
+        socket.emit("username_set", false);
+        console.log("Player reconnected: " + data.name);
+      }
+      else if (!Players.hasOwnProperty(data.name)) {
         socket.name = data.name;
         let isAdmin = data.name == "Ryo";
         socket.emit("username_set", isAdmin);
