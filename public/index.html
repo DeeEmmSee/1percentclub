@@ -46,7 +46,7 @@
             </div>
 
             
-            <div v-if="connectedToServer">
+            <div v-if="!disconnected">
                 <div class="row" v-show="usernameSet && !isAdmin">
                     <div class="col-sm-12" v-show="!gameState.GameStarted">
                         <h4>{{ username }}</h4>
@@ -196,10 +196,7 @@
                                 </div>
                             </div>
                         </div>
-
-										<td><button class="btn btn-danger" @click="SetAnswerAsIncorrect(playerAnswer)">Mark as Incorrect</button></td>
-                    
-
+                        
                     </div>
 
                 </div>

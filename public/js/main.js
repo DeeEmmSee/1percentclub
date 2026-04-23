@@ -16,6 +16,7 @@ const app = {
     data() {
       return {
         connectedToServer: false,
+        disconnected: false,
         username: '',
         usernameSet: false,
         isAdmin: false,
@@ -42,6 +43,7 @@ const app = {
         socket.on("connect", () => {
           console.log("Connected");
           self.connectedToServer = true;
+          self.disconnected = false;
 
           const savedName = localStorage.getItem('pgUsername');
           if (savedName && !self.usernameSet) {
@@ -60,6 +62,7 @@ const app = {
         socket.on("disconnect", () => {
           console.log("Disconnected");
           self.connectedToServer = false;
+          self.disconnected = true;
         });
         
         socket.on("username_set", (isAdmin) => {
