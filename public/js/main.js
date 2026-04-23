@@ -47,6 +47,7 @@ const app = {
 
           const savedName = localStorage.getItem('pgUsername');
           if (savedName && !self.usernameSet) {
+            // Returning player
             self.username = savedName;
             socket.emit("set_username", {
               name: savedName,
@@ -54,8 +55,18 @@ const app = {
               extension: '',
               isReconnect: true
             });
-          } else {
-            self.usernameSet = self.username != '';
+          } else if (self.username != '') {
+            // First time connection from ConnectToServer()
+            let fileExtension = '';
+            if (self.displayPicture != null) {
+              let tmp = self.displayPicture.name.split('.');
+              fileExtension = '.' + tmp[tmp.length - 1];
+            }
+            socket.emit("set_username", { 
+              name: self.username, 
+              file: self.displayPicture, 
+              extension: fileExtension 
+            });
           }
         });
 
@@ -100,11 +111,6 @@ const app = {
           self.activeIndex =  -1;
         });
 
-        socket.on("disconnect", () => {
-          console.log("DISCONNECTED");
-          self.usernameSet = false;
-        });
-
         // ADMIN
         socket.on("admin_playerjoined", (player) => {
           self.playerList.push(player);
@@ -138,12 +144,12 @@ const app = {
         if (this.username != '') {
           socket.connect();
 
-          let fileExtension = '';
-          if (this.displayPicture != null){
-            let tmp = this.displayPicture.name.split('.');
-            fileExtension = '.' + tmp[tmp.length - 1];
-          }
-          socket.emit("set_username", { "name": this.username, "file": this.displayPicture, "extension": fileExtension });
+          // let fileExtension = '';
+          // if (this.displayPicture != null){
+          //   let tmp = this.displayPicture.name.split('.');
+          //   fileExtension = '.' + tmp[tmp.length - 1];
+          // }
+          // socket.emit("set_username", { "name": this.username, "file": this.displayPicture, "extension": fileExtension });
         }
       },
       StartGame() {
@@ -197,7 +203,7 @@ const app = {
         this.playerAnswers.splice(this.playerAnswers.indexOf(playerAnswer), 1);
       },
       Reconnect() {
-
+        socket.connect();
       }
     },
     mounted() {
