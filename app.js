@@ -1,5 +1,6 @@
 const express = require('express');
 const { createServer } = require('node:http');
+const https = require('node:https');
 const { join } = require('node:path');
 const { Server } = require('socket.io');
 const { instrument } = require("@socket.io/admin-ui");
@@ -10,7 +11,15 @@ const url = 'http://localhost:80'; //"http://game.onepercent.club";
 const filePath = 'D:/Programming/Web_Dev/1PercentClub/server/public/images';
 
 const app = express();
+
+var options = {
+  //key: fs.readFileSync(''),
+  //cert: fs.readFileSync(''),
+};
+
 const server = createServer(app);
+//const serverHttps = https.createServer(options, app);
+
 const io = new Server(server, {
   cors: {
     origin: "*"//"http://localhost:5173"
@@ -53,12 +62,12 @@ io.on('connection', (socket) => {
         return;
       }
 
-      if (isReturningPlayer && !isAdmin) {
-        if (disconnectTimers[data.name]) {
+      if (disconnectTimers[data.name]) {
           clearTimeout(disconnectTimers[data.name]); // cancel the deletion
           delete disconnectTimers[data.name];
-        }
-
+      }
+      
+      if (isReturningPlayer && !isAdmin) {
         Players[data.name].id = socket.id;
         socket.name = data.name;
         socket.join("players");
@@ -217,7 +226,7 @@ io.on('connection', (socket) => {
           delete Players[socket.name];
           io.to(GameSocketID).emit("admin_playerleft", socket.name);
           delete disconnectTimers[socket.name];
-        }, 10 * 60 * 1000); // 10 minute grace period
+        }, 20 * 60 * 1000); // 20 minute grace period
 
         // if (Players.hasOwnProperty(socket.name)) {
         //   delete Players[socket.name];
@@ -238,3 +247,7 @@ instrument(io, {
 server.listen(80, () => {
   console.log('server running at http://localhost:80');
 });
+
+// serverHttps.listen(443, () => {
+//   console.log('server running at https://localhost:443');
+// });

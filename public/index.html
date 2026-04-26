@@ -18,14 +18,17 @@
     <body>
        <div id="app">
         <main class="container">
-            <div class="row" v-show="debug">
-                <div class="col-sm-12">
+            <div class="row">
+                <div class="col-sm-12" v-show="debug">
                     <p>Connected: {{ connectedToServer }}</p>
                     <p>Username: {{ username }}</p>
                     <p>Username set: {{ usernameSet }}</p>
                     <p>Client Key: {{ clientKey }}</p>
                     <p v-show="error != ''">ERROR: {{ error }}</p>
                     <!-- <button class="btn btn-primary" @click="TestSend">Test</button> -->
+                </div>
+                <div class="col-sm-12">
+                    <button type="button" class="btn btn-warning" @click="ResetUserData()">Click here to reset your user data</button>
                 </div>
             </div>
             
@@ -67,7 +70,7 @@
 
                             <div v-show="gameState.CanAnswer">
                                 <div v-show="!hasAnswered">
-                                    <p>{{ gameState.QuestionText }}</p>
+                                    <p v-html="gameState.QuestionText"></p>
 
                                     <div v-show="gameState.AnswerOptions.length > 0" class="form-group">
                                         <div v-for="(option, index) in gameState.AnswerOptions" @click="selectedOption(option, index)" :class="['item', { active: activeIndex === index }]">
@@ -206,8 +209,7 @@
                 </div>
             </div>
             <div v-if="disconnected || reconnecting">
-                Attempting to reconnect to server. If you're not automatically reconnected after a few minutes click the button below:
-
+Click this button to reconnect: 
                 <button class="btn btn-primary" @click="Reconnect()">Reconnect</button>
             </div>
         </main>
