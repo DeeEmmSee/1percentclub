@@ -18,6 +18,7 @@ const app = {
         connectedToServer: false,
         disconnected: false,
         username: '',
+        clientKey: '',
         usernameSet: false,
         isAdmin: false,
         gameState: {
@@ -33,7 +34,10 @@ const app = {
         playerList: [],
         activeIndex: -1,
         playerAnswers: [],
-        displayPicture: null
+        displayPicture: null,
+        error: '',
+        debug: true,
+        reconnecting: false
       }
     },
     methods: {
@@ -45,15 +49,19 @@ const app = {
           self.connectedToServer = true;
           self.disconnected = false;
 
-          const savedName = localStorage.getItem('pgUsername');
+          let savedName = localStorage.getItem('pgUsername');
+          let savedClientKey = localStorage.getItem('clientKey'); 
+
           if (savedName && !self.usernameSet) {
             // Returning player
             self.username = savedName;
+            self.clientKey = savedClientKey ?? ''; 
             socket.emit("set_username", {
               name: savedName,
               file: null,
               extension: '',
-              isReconnect: true
+              isReconnect: true,
+              clientKey: self.clientKey
             });
           } else if (self.username != '') {
             // First time connection from ConnectToServer()
@@ -62,10 +70,17 @@ const app = {
               let tmp = self.displayPicture.name.split('.');
               fileExtension = '.' + tmp[tmp.length - 1];
             }
+
+            if (!self.clientKey || self.clientKey == '') {
+              self.clientKey = self.uuidv4();
+            }
+            
             socket.emit("set_username", { 
               name: self.username, 
               file: self.displayPicture, 
-              extension: fileExtension 
+              extension: fileExtension,
+              isReconnect: false,
+              clientKey: self.clientKey
             });
           }
         });
@@ -74,11 +89,14 @@ const app = {
           console.log("Disconnected");
           self.connectedToServer = false;
           self.disconnected = true;
+          self.usernameSet = false;
         });
         
         socket.on("username_set", (isAdmin) => {
           localStorage.setItem('pgUsername', this.username);
-
+          localStorage.setItem('clientKey', this.clientKey);
+          
+          self.reconnecting = false;
           self.usernameSet = true;
           self.isAdmin = isAdmin;
           console.log("username set");
@@ -204,10 +222,30 @@ const app = {
       },
       Reconnect() {
         socket.connect();
+      },
+      uuidv4() {
+        return "10000000-1000-4000-8000-100000000000".replace(/[018]/g, c =>
+          (+c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> +c / 4).toString(16)
+        );
       }
     },
     mounted() {
       this.BindSocketEvents();
+
+      let savedName = localStorage.getItem('pgUsername');
+      let clientKey = localStorage.getItem('clientKey');
+
+      if (savedName && savedName != "") {
+        this.username = savedName;
+        this.clientKey = clientKey;
+       
+        this.reconnecting = true;
+
+        this.$nextTick(() => {
+          // Wait for Vue to finish updating before connecting
+          this.Reconnect();
+        });
+      }
     }
 };
 

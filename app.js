@@ -24,28 +24,42 @@ const io = new Server(server, {
 const Players = { };
 let GameSocketID = '';
 let gameStarted = false;
+const disconnectTimers = [];
 
 io.on('connection', (socket) => {
     //console.log('User connected');
 
     // Set Username (player - server - game)
     socket.on('set_username', (data) => {
-      const isReturningPlayer = data.isReconnect && Players.hasOwnProperty(data.name);
-  
+      console.log(data);
+
+      if (Players.hasOwnProperty(data.name)) {
+        console.log(Players[data.name]);
+      }
+      const isReturningPlayer = data.isReconnect && Players.hasOwnProperty(data.name) && Players[data.name].clientKey == data.clientKey;
+      const isAdmin = data.name == "Ryo";
+
+      console.log("Returning: " + isReturningPlayer);
+
       // If game is not running then allow in
       if (gameStarted && !isReturningPlayer) {
         socket.emit('error', "Game has already started");
+        console.log("game started");
         return;
       }
-
-      if (Object.keys(Players).length >= 100) {
+      else if (!isReturningPlayer && Object.keys(Players).length >= 100) {
         socket.emit('error', "Game has too many players");
+        console.log("too many players");
         return;
       }
 
-       if (isReturningPlayer) {
-        // Update their socket ID and rejoin the room
-        Players[data.name] = socket.id;
+      if (isReturningPlayer && !isAdmin) {
+        if (disconnectTimers[data.name]) {
+          clearTimeout(disconnectTimers[data.name]); // cancel the deletion
+          delete disconnectTimers[data.name];
+        }
+
+        Players[data.name].id = socket.id;
         socket.name = data.name;
         socket.join("players");
         socket.emit("username_set", false);
@@ -53,18 +67,17 @@ io.on('connection', (socket) => {
       }
       else if (!Players.hasOwnProperty(data.name)) {
         socket.name = data.name;
-        let isAdmin = data.name == "Ryo";
         socket.emit("username_set", isAdmin);
 
         if (isAdmin) {
           // add admin to game room
           socket.join("admin");
           console.log("Admin joined");
-           io.to(GameSocketID).emit("admin_joined");
+          io.to(GameSocketID).emit("admin_joined");
         }
         else {
           socket.join("players");
-          Players[data.name] = socket.id;
+          Players[data.name] = {"id": socket.id, "clientKey": data.clientKey};
           console.log("User added");
           console.log(Players);
 
@@ -92,7 +105,7 @@ io.on('connection', (socket) => {
             }
           }
           
-          io.to(GameSocketID).emit("admin_playerjoined", { "name": socket.name, "id": socket.id, "imageUrl": url + "/images/" + filename }); 
+          io.to(GameSocketID).emit("admin_playerjoined", { "name": socket.name, "id": socket.id, "imageUrl": url + "/images/" + filename, "clientKey": data.clientKey }); 
         }
       }
       else {
@@ -199,10 +212,17 @@ io.on('connection', (socket) => {
     socket.on('disconnect', () => {
         console.log("User disconnected");
 
-        if (Players.hasOwnProperty(socket.name)) {
+        disconnectTimers[socket.name] = setTimeout(() => {
+          console.log("Removing player due to inactivity: " + socket.name);
           delete Players[socket.name];
-          io.to(GameSocketID).emit("admin_playerleft", socket.name); 
-        }
+          io.to(GameSocketID).emit("admin_playerleft", socket.name);
+          delete disconnectTimers[socket.name];
+        }, 10 * 60 * 1000); // 10 minute grace period
+
+        // if (Players.hasOwnProperty(socket.name)) {
+        //   delete Players[socket.name];
+        //   io.to(GameSocketID).emit("admin_playerleft", socket.name); 
+        // }
     })
 });
 

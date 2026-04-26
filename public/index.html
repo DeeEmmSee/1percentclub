@@ -18,16 +18,20 @@
     <body>
        <div id="app">
         <main class="container">
-            <div class="row">
+            <div class="row" v-show="debug">
                 <div class="col-sm-12">
-                    Connected: {{ connectedToServer }}
+                    <p>Connected: {{ connectedToServer }}</p>
+                    <p>Username: {{ username }}</p>
+                    <p>Username set: {{ usernameSet }}</p>
+                    <p>Client Key: {{ clientKey }}</p>
+                    <p v-show="error != ''">ERROR: {{ error }}</p>
                     <!-- <button class="btn btn-primary" @click="TestSend">Test</button> -->
                 </div>
             </div>
             
             <div class="spacer20"></div>
 
-            <div class="row" v-show="!usernameSet">
+            <div class="row" v-show="!usernameSet && !reconnecting">
                 <div class="form-group">
                     <label>Username</label><br />
                     <input type="text" v-model="username" v-on:keyup.enter="ConnectToServer()" />
@@ -201,8 +205,8 @@
 
                 </div>
             </div>
-            <div v-else>
-                Attempting to reconnect to server. Click the button below if auto-reconnect isn't working:
+            <div v-if="disconnected || reconnecting">
+                Attempting to reconnect to server. If you're not automatically reconnected after a few minutes click the button below:
 
                 <button class="btn btn-primary" @click="Reconnect()">Reconnect</button>
             </div>
