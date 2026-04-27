@@ -33,7 +33,7 @@ const io = new Server(server, {
 const Players = { };
 let GameSocketID = '';
 let gameStarted = false;
-const disconnectTimers = [];
+const disconnectTimers = {};
 
 io.on('connection', (socket) => {
     //console.log('User connected');

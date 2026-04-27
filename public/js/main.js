@@ -50,12 +50,12 @@ const app = {
           self.disconnected = false;
 
           let savedName = localStorage.getItem('pgUsername');
-          let savedClientKey = localStorage.getItem('clientKey'); 
+          //let savedClientKey = localStorage.getItem('clientKey'); 
 
           if (savedName && !self.usernameSet) {
             // Returning player
             self.username = savedName;
-            self.clientKey = savedClientKey ?? ''; 
+            //self.clientKey = savedClientKey ?? ''; 
             socket.emit("set_username", {
               name: savedName,
               file: null,
@@ -71,10 +71,6 @@ const app = {
               fileExtension = '.' + tmp[tmp.length - 1];
             }
 
-            if (!self.clientKey || self.clientKey == '') {
-              self.clientKey = self.uuidv4();
-            }
-            
             socket.emit("set_username", { 
               name: self.username, 
               file: self.displayPicture, 
@@ -106,6 +102,7 @@ const app = {
           console.log("ERROR: " + err);
           self.username = '';
           self.usernameSet = false;
+          localStorage.removeItem('pgUsername');
         });
 
         socket.on("update_state", (data) => {
@@ -239,16 +236,22 @@ const app = {
       let savedName = localStorage.getItem('pgUsername');
       let clientKey = localStorage.getItem('clientKey');
 
+      if (!clientKey || clientKey == '') {
+        this.clientKey = this.uuidv4();
+      }
+      else {
+        this.clientKey = clientKey;
+      }
+
       if (savedName && savedName != "") {
         this.username = savedName;
-        this.clientKey = clientKey;
        
         this.reconnecting = true;
 
-        // this.$nextTick(() => {
-        //   // Wait for Vue to finish updating before connecting
-        //   this.Reconnect();
-        // });
+        this.$nextTick(() => {
+          // Wait for Vue to finish updating before connecting
+          this.Reconnect();
+        });
       }
     }
 };
