@@ -1,24 +1,32 @@
 const express = require('express');
 const { createServer } = require('node:http');
 const https = require('node:https');
+const http = require('node:http');
 const { join } = require('node:path');
 const { Server } = require('socket.io');
 const { instrument } = require("@socket.io/admin-ui");
 const compression = require("compression");
 const fs = require('node:fs');
 
-const url = 'http://localhost:80'; //"http://game.onepercent.club";
+const url = 'http://localhost:80'; //"https://game.onepercent.club";
 const filePath = 'D:/Programming/Web_Dev/1PercentClub/server/public/images';
 
 const app = express();
 
 var options = {
-  //key: fs.readFileSync(''),
-  //cert: fs.readFileSync(''),
+  key: fs.readFileSync(''),
+  cert: fs.readFileSync(''),
 };
 
-const server = createServer(app);
-//const serverHttps = https.createServer(options, app);
+const server = https.createServer(options, app);
+
+// Lightweight HTTP server whose only job is to redirect to HTTPS
+const redirectApp = express();
+redirectApp.use((req, res) => {
+  res.redirect(301, 'https://' + req.headers.host + req.url);
+});
+const httpServer = http.createServer(redirectApp);
+
 
 const io = new Server(server, {
   cors: {
@@ -244,10 +252,10 @@ instrument(io, {
   mode: 'development'
 });
 
-server.listen(80, () => {
-  console.log('server running at http://localhost:80');
+httpServer.listen(80, () => {
+  console.log('HTTP redirects running at http://localhost:80');
 });
 
-// serverHttps.listen(443, () => {
-//   console.log('server running at https://localhost:443');
-// });
+server.listen(443, () => {
+  console.log('Server running at https://localhost:443');
+});
