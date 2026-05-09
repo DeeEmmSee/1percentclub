@@ -2,6 +2,7 @@
 //const URL = "http://localhost:3000";
 
 const URL = window.location.href.indexOf("localhost") > -1 ? "http://localhost:80" : "http://game.onepercent.club"; //"https://one-percent-club-verf.onrender.com/";
+const noSleep = new NoSleep();
 
 const socket = io(URL, {
   autoConnect: false,
