@@ -1,2 +1,6 @@
 node_modules
 public/images
+server.csr
+key.pem
+cert.pem
+ca.crt
