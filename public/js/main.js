@@ -156,6 +156,8 @@ const app = {
         this.displayPicture = evt.target.files[0];
       },
       ConnectToServer() {
+        noSleep.enable();
+        
         if (this.username != '' && !this.connectedToServer) {
           socket.connect();
 
